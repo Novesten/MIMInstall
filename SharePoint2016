@@ -1,0 +1,25 @@
+# this is Part off a bigger world
+# Have fun 
+#
+#
+
+$productKey = "RTNGH-MQRV6-M3BWQ-DB748-VH7DM" #Replace with your own
+$spLocalPath = "C:\temp\SharePoint2016\"
+$spConfigFile = $spLocalPath + "config.xml"
+New-Item -ItemType Directory -Force -Path $spLocalPath
+Copy-Item D:\files\setupfarmsilent\config.xml $spLocalPath 
+
+$configContent =[io.file]::ReadAllText($spConfigFile) 
+Get-ChildItem $spConfigFile -Recurse |Where-Object {$_.GetType().ToString() -eq "System.IO.FileInfo"} | Set-ItemProperty -Name IsReadOnly -Value $false 
+$configContent = $configContent -Replace "<!--", ""
+$configContent = $configContent -Replace "-->", ""
+$configContent = $configContent -Replace "Enter Product Key Here", $productKey
+$configContent = $configContent -Replace """none""", """basic"""
+$configContent | Out-File $spConfigFile
+
+
+$spProcess = new-object System.Diagnostics.Process
+$spProcess.StartInfo.Filename = "D:\setup.exe"
+$spProcess.StartInfo.Arguments = "/config $spLocalPath config.xml"
+$spProcess.Start()
+$spProcess.WaitForExit()
